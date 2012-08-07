@@ -60,6 +60,7 @@ class SCL_EDITOR_EXPORT STEPfile {
 //file information
         DirObj * _currentDir;
         std::string _fileName;
+        std::streampos _dataSection; ///< start of the first data section. TODO support multiple data sections with a vector of streampos?
 
         //the following are used to compute read/write progress
         std::ifstream::pos_type _iFileSize; ///< input file size

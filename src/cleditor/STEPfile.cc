@@ -1708,6 +1708,7 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
         _error.AppendToUserMsg( "Error: Unable to find DATA section delimiter. Data section not read. Rest of file ignored.\n" );
         return SEVERITY_INPUT_ERROR;
     }
+    _dataSection = in->tellg();
 
     //  PASS 1
     _errorCount = 0;
@@ -1723,34 +1724,17 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
     }
 
     //  PASS 2
-    //  This would be nicer if you didn't actually have to close the
-    //  file but could just reposition the pointer back to the
-    //  beginning of the data section.  It looks like you can do this
-    //  with the GNU File class, but that class doesn't have the
-    //  operator >> overloaded which is used to do the rest of the
-    //  parsing.  SO we are using istreams and this works, but could
-    //  be better.
 
     // reset the error count so you're not counting things twice:
     _errorCount = 0;
-    istream * in2;
-    if( !( ( in2 = OpenInputFile() ) && ( in2 -> good() ) ) ) {
-        //  if the stream is not readable, there's an error
-        _error.AppendToUserMsg( "Cannot open file for 2nd pass -- No data read.\n" );
-        CloseInputFile( in2 );
-        return SEVERITY_INPUT_ERROR;
-    }
-    if( !FindDataSection( *in2 ) ) {
-        _error.AppendToUserMsg( "Error: Unable to find DATA section delimiter in second pass. \nData section not read. Rest of file ignored.\n" );
-        CloseInputFile( in2 );
-        return  SEVERITY_INPUT_ERROR;
-    }
+
+    in->seekg(_dataSection);
 
     switch( _fileType ) {
         case VERSION_CURRENT:
         case VERSION_UNKNOWN:
         case WORKING_SESSION:
-            valid_insts = ReadData2( *in2, useTechCor );
+            valid_insts = ReadData2( *in, useTechCor );
             break;
         default:
             cerr << "STEPfile::AppendFile: type " << _fileType << " not handled by switch statement. " << __FILE__ << ":" <<  __LINE__ << endl;
@@ -1759,12 +1743,11 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
     }
 
     //check for "ENDSEC;"
-    ReadTokenSeparator( *in2 );
+    ReadTokenSeparator( *in );
     if( total_insts != valid_insts ) {
         sprintf( errbuf, "%d invalid instances in file: %s\n",
                  total_insts - valid_insts, ( ( FileName().compare( "-" ) == 0 ) ? "standard input" : FileName().c_str() ) );
         _error.AppendToUserMsg( errbuf );
-        CloseInputFile( in2 );
         return _error.GreaterSeverity( SEVERITY_WARNING );
     }
 
@@ -1781,13 +1764,13 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
 
     //check for "ENDSTEP;" || "END-ISO-10303-21;"
 
-    if( in2 -> good() ) {
-        ReadTokenSeparator( *in2 );
-        keywd = GetKeyword( *in2, ";", _error );
+    if( in -> good() ) {
+        ReadTokenSeparator( *in );
+        keywd = GetKeyword( *in, ";", _error );
         //yank the ";" from the istream
-        //if (';' == in2->peek()) in2->get();
+        //if (';' == in->peek()) in->get();
         char c;
-        in2->get( c );
+        in->get( c );
         if( c == ';' ) {
             ;
         } else {
@@ -1797,13 +1780,11 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
 
     if( ( strncmp( const_cast<char *>( keywd.c_str() ),
                    END_FILE_DELIM,
-                   strlen( const_cast<char *>( keywd.c_str() ) ) ) || !( in2 -> good() ) ) ) {
+                   strlen( const_cast<char *>( keywd.c_str() ) ) ) || !( in -> good() ) ) ) {
         _error.AppendToUserMsg( END_FILE_DELIM );
         _error.AppendToUserMsg( " missing at end of file.\n" );
-        CloseInputFile( in2 );
         return _error.GreaterSeverity( SEVERITY_WARNING );
     }
-    CloseInputFile( in2 );
     if( _verbose || _errorCount || _warningCount ) {
         cout << "Finished reading file.\n\n";
     }
