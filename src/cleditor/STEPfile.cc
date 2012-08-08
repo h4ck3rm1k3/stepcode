@@ -47,11 +47,9 @@
  */
 const std::string STEPfile::SetFileName( const std::string newName ) {
     //  if a newName is not given or is the same as the old, use the old name
-    if( ( newName.empty() ) || ( newName == _fileName ) ) {
-        return FileName();
+    if( !newName.empty() ) {
+        _fileName =  newName;
     }
-
-    _fileName = DirObj::Normalize( newName );
     return _fileName;
 }
 
