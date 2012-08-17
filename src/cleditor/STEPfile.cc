@@ -853,9 +853,9 @@ SDAI_Application_instance * STEPfile::CreateInstance( istream & in, ostream & ou
         }
     } else { // not a complex entity
         // check for User Defined Entity
-        int userDefined = 0;
+        bool userDefined = false;
         if( c == '!' ) {
-            userDefined = 1;
+            userDefined = true;
             in.get( c );
         }
 
