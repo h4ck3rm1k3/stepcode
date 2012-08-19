@@ -801,13 +801,12 @@ SDAI_Application_instance * STEPfile::CreateInstance( istream & in, ostream & ou
     SDAI_Application_instance_ptr * scopelist = 0;
 
     SDAI_Application_instance * obj;
-    ErrorDescriptor result;
-    // Sent down to CreateSubSuperInstance() to receive error info
+    ErrorDescriptor result; //< sent down to CreateSubSuperInstance() to receive error info
 
     ReadTokenSeparator( in );
 
     in >> fileid; // read instance id
-    fileid = IncrementFileId( fileid );
+    fileid = IncrementFileId( fileid );  //< I (MP) think this ensures that this instance doesn't collide with one read from a different file earlier
     if( instances().FindFileId( fileid ) ) {
         SkipInstance( in, tmpbuf );
         out <<  "ERROR: instance #" << fileid
@@ -1669,11 +1668,10 @@ Severity STEPfile::AppendFile( istream * in, bool useTechCor ) {
     }
 
     else {
-        sprintf( errbuf,
-                 "Faulty input at beginning of file. \"ISO-10303-21;\" or"
-                 " \"STEP_WORKING_SESSION;\" expected. File not read: %s\n",
-                 ( ( FileName().compare( "-" ) == 0 ) ? "standard input" : FileName().c_str() ) );
-        _error.AppendToUserMsg( errbuf );
+        _error.AppendToUserMsg( "Faulty input at beginning of file. \"ISO-10303-21;\" or" );
+        _error.AppendToUserMsg( " \"STEP_WORKING_SESSION;\" expected. File not read: " );
+        _error.AppendToUserMsg( ( _fileName.compare( "-" ) == 0 ) ? "standard input" : _fileName );
+        _error.AppendToUserMsg( "\n" );
         _error.GreaterSeverity( SEVERITY_INPUT_ERROR );
         return SEVERITY_INPUT_ERROR;
     }

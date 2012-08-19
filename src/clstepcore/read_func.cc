@@ -930,7 +930,7 @@ void ReadTokenSeparator( istream & in, std::string * comments ) {
                 ReadComment( in, s );
                 if( !s.empty() && comments ) {
                     comments->append( "/*" );
-                    comments->append( s.c_str() );
+                    comments->append( s );
                     comments->append( "*/\n" );
                 }
                 break;

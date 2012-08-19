@@ -266,7 +266,7 @@ int STEPfile::IncrementFileId( int fileid ) {
     return ( fileid + FileIdIncr() );
 }
 
-/// step function with y-intercept of 2000, step size 1000 in x and y. why?!
+/// step function with y-intercept of 2000, step size 1000 in x and y. used when appending to another file?
 void STEPfile::SetFileIdIncrement() {
     if( instances().MaxFileId() < 0 ) {
         _fileIdIncr = 0;
